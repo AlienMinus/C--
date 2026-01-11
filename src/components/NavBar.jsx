@@ -56,7 +56,8 @@ const NavBar = () => {
       right: 0,
       zIndex: 1000,
     }}>
-      <Link to="/" style={{ textDecoration: 'none', color: '#00ff00', fontSize: '1.5rem', fontWeight: 'bold' }}>
+      <Link to="/" style={{ textDecoration: 'none', color: '#00ff00', fontSize: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <img src="/favicon.png" alt="C-- Logo" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
         &lt;C-- /&gt;
       </Link>
       <div style={{ display: 'flex', gap: '10px' }}>
