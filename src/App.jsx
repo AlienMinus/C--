@@ -8,7 +8,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={CodeBlock} />
+        <Route path="/" element={<CodeBlock />} />
         <Route path="/*" element={<NotFound />} />
       </Routes>
     </Router>
