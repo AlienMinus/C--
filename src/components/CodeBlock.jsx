@@ -75,6 +75,7 @@ const CodeBlock = () => {
         justifyContent: "center",
         gap: "20px",
         padding: "20px",
+        marginTop: "80px"
       }}
     >
       <Run isRunning={isRunning} onRun={handleRun} />

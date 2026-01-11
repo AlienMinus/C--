@@ -40,13 +40,13 @@ const Shell = forwardRef((props, ref) => {
         defaultLanguage="c"
         defaultValue={`#include <stdio.h>
 
-                        int main() {
-                            int n;
-                            printf("Enter Your Number: ");
-                            scanf("%d", &n);
-                            printf("Number is %d", n);
-                            return 0;
-                        }`}
+int main() {
+    int n;
+    printf("Enter Your Number: ");
+    scanf("%d", &n);
+    printf("Number is %d", n);
+    return 0;
+}`}
         theme="vs-dark"
         onMount={handleEditorDidMount}
         options={{
@@ -60,6 +60,9 @@ const Shell = forwardRef((props, ref) => {
             vertical: 'hidden',
             handleMouseWheel: false,
           },
+          autoIndent: "full",
+          formatOnPaste: true,
+          formatOnType: true,
         }}
       />
     </div>

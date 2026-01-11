@@ -1,0 +1,7 @@
+.app-layout {
+  padding-top: 80px; /* 60px navbar + 20px spacing */
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
