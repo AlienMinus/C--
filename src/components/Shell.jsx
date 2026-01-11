@@ -1,7 +1,7 @@
 import React, { useRef, forwardRef, useImperativeHandle, useState } from 'react';
 import Editor from "@monaco-editor/react";
 
-const Shell = forwardRef((props, ref) => {
+const Shell = forwardRef(({ onFocus, defaultValue, ...props }, ref) => {
   const editorRef = useRef(null);
   const [editorHeight, setEditorHeight] = useState(40);
 
@@ -19,13 +19,16 @@ const Shell = forwardRef((props, ref) => {
     };
     editor.onDidContentSizeChange(updateHeight);
     updateHeight();
+
+    if (onFocus) {
+      editor.onDidFocusEditorText(onFocus);
+    }
   };
 
   return (
     <div
       style={{
         width: '100%',
-        maxWidth: '800px',
         height: `${editorHeight}px`,
         backgroundColor: '#1e1e1e',
         border: '1px solid #333',
@@ -38,15 +41,7 @@ const Shell = forwardRef((props, ref) => {
       <Editor
         height="100%"
         defaultLanguage="c"
-        defaultValue={`#include <stdio.h>
-
-int main() {
-    int n;
-    printf("Enter Your Number: ");
-    scanf("%d", &n);
-    printf("Number is %d", n);
-    return 0;
-}`}
+        defaultValue={defaultValue}
         theme="vs-dark"
         onMount={handleEditorDidMount}
         options={{

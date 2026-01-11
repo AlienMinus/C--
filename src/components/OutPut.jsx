@@ -5,7 +5,6 @@ const OutPut = ({ output }) => {
     <div
       style={{
         width: '100%',
-        maxWidth: '800px',
         backgroundColor: '#1e1e1e',
         color: '#d4d4d4',
         fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',

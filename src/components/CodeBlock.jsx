@@ -1,9 +1,12 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Shell from "./Shell";
 import Run from "./Run";
 import OutPut from "./OutPut";
+import { useShell } from "../context/ShellContext";
+import { MdDelete } from "react-icons/md";
 
-const CodeBlock = () => {
+const CodeBlock = ({ id, defaultValue }) => {
+  const { registerShellRunner, registerShellClearer, setActiveShellId, removeShell } = useShell();
   const [showOutput, setShowOutput] = useState(false);
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
@@ -66,6 +69,22 @@ const CodeBlock = () => {
     }
   };
 
+  const handleClear = () => {
+    setOutput("");
+    setShowOutput(false);
+  };
+
+  useEffect(() => {
+    if (id) {
+      const unregisterRunner = registerShellRunner(id, handleRun);
+      const unregisterClearer = registerShellClearer(id, handleClear);
+      return () => {
+        unregisterRunner();
+        unregisterClearer();
+      };
+    }
+  }, [id, registerShellRunner, registerShellClearer]);
+
   return (
     <div
       style={{
@@ -75,22 +94,47 @@ const CodeBlock = () => {
         justifyContent: "center",
         gap: "20px",
         padding: "20px",
-        marginTop: "80px"
       }}
+      onClick={() => setActiveShellId(id)}
     >
-      <Run isRunning={isRunning} onRun={handleRun} />
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center" }}>
+        <Run isRunning={isRunning} onRun={handleRun} />
+      </div>
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          width: "100%",
-          maxWidth: "800px",
+          width: "60vw",
           gap: "10px",
         }}
       >
-        <Shell ref={shellRef} />
+        <Shell ref={shellRef} onFocus={() => setActiveShellId(id)} defaultValue={defaultValue} />
         {showOutput && <OutPut output={output} />}
       </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          removeShell(id);
+        }}
+        title="Delete Shell"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: "5px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "transform 0.1s ease-in-out",
+          color: "#ef4444",
+        }}
+        onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.9)"}
+        onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+        onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
+        onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+      >
+        <MdDelete size={30} />
+      </button>
     </div>
   );
 };

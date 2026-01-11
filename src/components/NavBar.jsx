@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { VscRunAll } from "react-icons/vsc";
+import { VscRunAll, VscClearAll } from "react-icons/vsc";
 import { MdRunCircle } from "react-icons/md";
 import { RiAddCircleFill } from "react-icons/ri";
+import { useShell } from '../context/ShellContext';
 
 const NavButton = ({ children, title, ...props }) => (
   <button
@@ -38,6 +39,8 @@ const NavButton = ({ children, title, ...props }) => (
 );
 
 const NavBar = () => {
+  const { addShell, runAll, runCurrent, clearAllOutputs } = useShell();
+
   return (
     <nav style={{
       display: 'flex',
@@ -57,9 +60,10 @@ const NavBar = () => {
         &lt;C-- /&gt;
       </Link>
       <div style={{ display: 'flex', gap: '10px' }}>
-        <NavButton title="Run All Shell"><VscRunAll /></NavButton>
-        <NavButton title="Run Current Shell"><MdRunCircle /></NavButton>
-        <NavButton title="Add New Shell"><RiAddCircleFill /></NavButton>
+        <NavButton title="Run All Shell" onClick={runAll}><VscRunAll /></NavButton>
+        <NavButton title="Run Current Shell" onClick={runCurrent}><MdRunCircle /></NavButton>
+        <NavButton title="Clear All Outputs" onClick={clearAllOutputs}><VscClearAll /></NavButton>
+        <NavButton title="Add New Shell" onClick={addShell}><RiAddCircleFill /></NavButton>
       </div>
     </nav>
   );
