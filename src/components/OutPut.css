@@ -1,0 +1,158 @@
+/* OutPut.css - Colab Execution Output & Terminal Stream */
+
+.colab-output-box {
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #30363d;
+  background-color: #121314;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.colab-output-box.error {
+  border-color: rgba(248, 81, 73, 0.4);
+}
+
+/* Header / Status Bar */
+.colab-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background-color: #1a1c1e;
+  border-bottom: 1px solid #282a2d;
+  font-size: 12px;
+  color: #8b949e;
+}
+
+.colab-output-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.colab-output-status-failed {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #f85149;
+  font-weight: 600;
+}
+
+.colab-output-status-success {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #3fb950;
+  font-weight: 600;
+}
+
+.colab-output-time {
+  color: #8b949e;
+  margin-left: 4px;
+}
+
+/* Action Buttons */
+.colab-output-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.colab-output-btn-js {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid #363b42;
+  color: #c9d1d9;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.colab-output-btn-js:hover {
+  background-color: #21262d;
+  color: #58a6ff;
+}
+
+.colab-output-btn-js.active {
+  background-color: #21262d;
+  color: #58a6ff;
+  border-color: #58a6ff;
+}
+
+.colab-output-btn-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 11px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.colab-output-btn-text:hover {
+  color: #ffffff;
+}
+
+.colab-output-btn-text.copied {
+  color: #3fb950;
+}
+
+/* Generated JS Drawer */
+.colab-output-js-panel {
+  background-color: #0d1117;
+  border-bottom: 1px solid #30363d;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-family: Consolas, Monaco, monospace;
+}
+
+.colab-output-js-title {
+  color: #58a6ff;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.colab-output-js-code {
+  margin: 0;
+  color: #e6edf3;
+  white-space: pre-wrap;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+/* Terminal Stream */
+.colab-output-terminal {
+  padding: 12px 14px;
+  font-family: 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e6edf3;
+  background-color: #121314;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.colab-output-terminal.error {
+  color: #ff7b72;
+  background-color: rgba(248, 81, 73, 0.05);
+}
+
+.colab-output-empty {
+  color: #484f58;
+  font-style: italic;
+}
+

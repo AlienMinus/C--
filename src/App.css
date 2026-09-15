@@ -1,7 +1,6 @@
-.app-layout {
-  padding-top: 80px; /* 60px navbar + 20px spacing */
-  min-height: 100vh;
+.notebook-main {
   width: 100%;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
 }

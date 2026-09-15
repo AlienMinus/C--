@@ -1,0 +1,11 @@
+/* Shell.css - Monaco Editor Wrapper */
+
+.colab-shell-wrapper {
+  width: 100%;
+  min-height: 50px;
+  background-color: #1e1e1e;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: height 0.1s ease-out;
+}
+

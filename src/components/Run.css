@@ -1,0 +1,58 @@
+/* Run.css - Colab Cell Execution Gutter & Button */
+
+.colab-run-gutter {
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 6px;
+  user-select: none;
+}
+
+.colab-run-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: #8b949e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-family: Consolas, Monaco, monospace;
+  font-weight: 600;
+  padding: 0;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.colab-run-btn:hover {
+  border-color: #388bfd;
+  background-color: #21262d;
+  color: #ffffff;
+}
+
+.colab-run-btn.running {
+  border-color: #388bfd;
+  background-color: rgba(56, 139, 253, 0.15);
+  color: #58a6ff;
+  cursor: wait;
+}
+
+.colab-run-spinner {
+  animation: colab-spin 1s linear infinite;
+}
+
+.colab-run-icon {
+  margin-left: 2px;
+  color: #58a6ff;
+}
+
+.colab-run-count {
+  font-size: 11px;
+  color: #8b949e;
+}
+

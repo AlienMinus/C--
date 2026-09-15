@@ -1,140 +1,171 @@
-import React, { useState, useRef, useEffect } from "react";
-import Shell from "./Shell";
-import Run from "./Run";
-import OutPut from "./OutPut";
-import { useShell } from "../context/ShellContext";
-import { MdDelete } from "react-icons/md";
+import React, { useState, useRef } from 'react';
+import Shell from './Shell';
+import Run from './Run';
+import OutPut from './OutPut';
+import { useShell } from '../context/ShellContext';
+import {
+  VscChevronUp,
+  VscChevronDown,
+  VscTrash,
+  VscCopy,
+  VscCode,
+  VscClearAll,
+} from 'react-icons/vsc';
+import './CodeBlock.css';
 
-const CodeBlock = ({ id, defaultValue }) => {
-  const { registerShellRunner, registerShellClearer, setActiveShellId, removeShell } = useShell();
-  const [showOutput, setShowOutput] = useState(false);
-  const [output, setOutput] = useState("");
-  const [isRunning, setIsRunning] = useState(false);
+const CodeBlock = ({ cell, isFirst, isLast }) => {
+  const { id, content, output, status, executionCount, executionTime, jsCode, fullJs, error } = cell;
+  const {
+    activeCellId,
+    setActiveCellId,
+    updateCellContent,
+    runCell,
+    runCellAndAdvance,
+    clearCellOutput,
+    moveCell,
+    removeCell,
+  } = useShell();
+
+  const [isHovered, setIsHovered] = useState(false);
+  const [showJsInline, setShowJsInline] = useState(false);
+  const [copied, setCopied] = useState(false);
   const shellRef = useRef(null);
 
-  const runJS = (code) => {
-    let outputBuffer = [];
-    const originalLog = console.log;
+  const isActive = activeCellId === id;
+  const isRunning = status === 'running';
 
-    // Override console.log to capture output
-    console.log = (...args) => {
-      outputBuffer.push("> " + args.join(" "));
-    };
-
-    try {
-      // Execute the code
-      // prompt() works synchronously in the browser
-      new Function(code)();
-    } catch (err) {
-      outputBuffer.push("> Runtime Error: " + err.message);
-    }
-
-    // Restore console.log
-    console.log = originalLog;
-
-    // Update output state
-    setOutput(outputBuffer.join("\n"));
+  const handleCopyCode = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
-
-  const handleRun = async () => {
-    if (isRunning) {
-      setIsRunning(false);
-      return;
-    }
-
-    setIsRunning(true);
-    setShowOutput(true);
-    setOutput(""); // Clear previous output
-
-    const cCode = shellRef.current ? shellRef.current.getValue() : "";
-
-    try {
-      const response = await fetch("https://code-converter-c-to-js.onrender.com/convert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: cCode }),
-      });
-      const data = await response.json();
-
-      if (data.error) {
-        setOutput("> Compile Error:\n" + data.error);
-      } else {
-        const jsCode = data.js || data.result;
-        runJS(jsCode);
-      }
-    } catch (err) {
-      setOutput("> Error: " + err.message);
-    } finally {
-      setIsRunning(false);
-    }
-  };
-
-  const handleClear = () => {
-    setOutput("");
-    setShowOutput(false);
-  };
-
-  useEffect(() => {
-    if (id) {
-      const unregisterRunner = registerShellRunner(id, handleRun);
-      const unregisterClearer = registerShellClearer(id, handleClear);
-      return () => {
-        unregisterRunner();
-        unregisterClearer();
-      };
-    }
-  }, [id, registerShellRunner, registerShellClearer]);
 
   return (
     <div
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "flex-start",
-        justifyContent: "center",
-        gap: "20px",
-        padding: "20px",
-      }}
-      onClick={() => setActiveShellId(id)}
+      onClick={() => setActiveCellId(id)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`colab-cell-container ${isActive ? 'active' : ''}`}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center" }}>
-        <Run isRunning={isRunning} onRun={handleRun} />
+      {/* Floating Toolbar in top-right */}
+      <div className={`colab-cell-toolbar ${isHovered || isActive ? 'visible' : ''}`}>
+        <button
+          disabled={isFirst}
+          onClick={(e) => {
+            e.stopPropagation();
+            moveCell(id, 'up');
+          }}
+          title="Move cell up"
+          className={`colab-cell-toolbar-btn ${isFirst ? 'disabled' : ''}`}
+        >
+          <VscChevronUp size={14} />
+        </button>
+
+        <button
+          disabled={isLast}
+          onClick={(e) => {
+            e.stopPropagation();
+            moveCell(id, 'down');
+          }}
+          title="Move cell down"
+          className={`colab-cell-toolbar-btn ${isLast ? 'disabled' : ''}`}
+        >
+          <VscChevronDown size={14} />
+        </button>
+
+        {(jsCode || fullJs) && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowJsInline(!showJsInline);
+            }}
+            title="Inspect generated JavaScript"
+            className={`colab-cell-toolbar-btn colab-cell-toolbar-btn-js ${showJsInline ? 'active' : ''}`}
+          >
+            <VscCode size={13} className="colab-btn-icon-space" />
+            JS
+          </button>
+        )}
+
+        <button
+          onClick={handleCopyCode}
+          title={copied ? 'Copied code!' : 'Copy cell code'}
+          className="colab-cell-toolbar-btn"
+        >
+          <VscCopy size={13} color={copied ? '#3fb950' : '#c9d1d9'} />
+        </button>
+
+        {output && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              clearCellOutput(id);
+            }}
+            title="Clear cell output"
+            className="colab-cell-toolbar-btn"
+          >
+            <VscClearAll size={14} />
+          </button>
+        )}
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            removeCell(id);
+          }}
+          title="Delete cell"
+          className="colab-cell-toolbar-btn colab-cell-toolbar-btn-danger"
+        >
+          <VscTrash size={14} />
+        </button>
       </div>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "60vw",
-          gap: "10px",
-        }}
-      >
-        <Shell ref={shellRef} onFocus={() => setActiveShellId(id)} defaultValue={defaultValue} />
-        {showOutput && <OutPut output={output} />}
+
+      {/* Cell Body: Execution Gutter + Monaco Editor */}
+      <div className="colab-cell-body">
+        <Run
+          isRunning={isRunning}
+          executionCount={executionCount}
+          onRun={() => runCell(id)}
+        />
+
+        <div className="colab-cell-editor-wrapper">
+          <Shell
+            ref={shellRef}
+            value={content}
+            onChange={(val) => updateCellContent(id, val || '')}
+            onFocus={() => setActiveCellId(id)}
+            onRun={() => runCell(id)}
+            onRunAndAdvance={() => runCellAndAdvance(id)}
+          />
+        </div>
       </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          removeShell(id);
-        }}
-        title="Delete Shell"
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: "5px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "transform 0.1s ease-in-out",
-          color: "#ef4444",
-        }}
-        onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.9)"}
-        onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-        onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
-        onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-      >
-        <MdDelete size={30} />
-      </button>
+
+      {/* Inline Converted JS View */}
+      {showJsInline && (jsCode || fullJs) && (
+        <div className="colab-cell-js-preview">
+          <div className="colab-cell-js-title">
+            Compiled JavaScript (Executed via Browser):
+          </div>
+          <pre className="colab-cell-js-code">
+            <code>{fullJs || jsCode}</code>
+          </pre>
+        </div>
+      )}
+
+      {/* Output Section */}
+      {(output || status === 'running' || isRunning) && (
+        <div className="colab-cell-output-wrapper">
+          <OutPut
+            output={output}
+            error={error}
+            executionTime={executionTime}
+            jsCode={jsCode}
+            fullJs={fullJs}
+            onClear={() => clearCellOutput(id)}
+          />
+        </div>
+      )}
     </div>
   );
 };

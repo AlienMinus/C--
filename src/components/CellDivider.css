@@ -1,0 +1,65 @@
+/* CellDivider.css - Colab Between-Cell Hover Insertion Bar */
+
+.colab-divider-container {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -8px 0;
+  z-index: 10;
+  cursor: default;
+}
+
+.colab-divider-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.colab-divider-line.active {
+  background-color: #388bfd;
+}
+
+.colab-divider-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+  background-color: #1e1e1e;
+  padding: 0 8px;
+  border-radius: 16px;
+}
+
+.colab-divider-actions.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.colab-divider-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #2d333b;
+  color: #c9d1d9;
+  border: 1px solid #444c56;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.colab-divider-btn:hover {
+  background-color: #388bfd;
+  color: #ffffff;
+  border-color: #388bfd;
+}
+
