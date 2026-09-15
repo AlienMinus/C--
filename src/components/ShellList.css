@@ -10,6 +10,19 @@
   min-height: calc(100vh - 94px);
   width: calc(100% - 48px);
   box-sizing: border-box;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.colab-notebook-container.sidebar-open {
+  margin-left: 368px;
+  width: calc(100% - 368px);
+}
+
+@media (max-width: 768px) {
+  .colab-notebook-container.sidebar-open {
+    margin-left: 48px;
+    width: calc(100% - 48px);
+  }
 }
 
 .colab-notebook-inner {

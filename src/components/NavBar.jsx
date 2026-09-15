@@ -29,6 +29,7 @@ const NavBar = () => {
     backendStatus,
     checkBackendHealth,
     isAnyRunning,
+    toggleSidebarTab,
   } = useShell();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -70,7 +71,7 @@ const NavBar = () => {
           <Link to="/" className="colab-brand">
             <img src="/favicon.png" alt="C-- Logo" className="colab-brand-logo" />
             <span className="colab-brand-title">
-              C-- <span className="colab-brand-highlight">Colab</span>
+              C-- <span className="colab-brand-highlight">Notebook</span>
             </span>
           </Link>
 
@@ -201,6 +202,16 @@ const NavBar = () => {
               </button>
               {activeMenu === 'view' && (
                 <div className="colab-dropdown">
+                  <div onClick={() => { toggleSidebarTab('toc'); setActiveMenu(null); }} className="colab-dropdown-item">
+                    Toggle Table of Contents
+                  </div>
+                  <div onClick={() => { toggleSidebarTab('snippets'); setActiveMenu(null); }} className="colab-dropdown-item">
+                    Toggle C Snippets Library
+                  </div>
+                  <div onClick={() => { toggleSidebarTab('files'); setActiveMenu(null); }} className="colab-dropdown-item">
+                    Toggle Files & Export
+                  </div>
+                  <div className="colab-dropdown-divider" />
                   <div onClick={() => { clearAllOutputs(); setActiveMenu(null); }} className="colab-dropdown-item">
                     Clear All Cell Outputs
                   </div>

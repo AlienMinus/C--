@@ -62,9 +62,21 @@
   border-right: 1px solid #3c4043;
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
   z-index: 101;
   overflow-y: auto;
+  animation: colab-drawer-slide 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes colab-drawer-slide {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 320px;
+    opacity: 1;
+  }
 }
 
 .colab-drawer-header {

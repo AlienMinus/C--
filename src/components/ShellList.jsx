@@ -7,10 +7,10 @@ import { VscAdd, VscNote } from 'react-icons/vsc';
 import './ShellList.css';
 
 const ShellList = () => {
-  const { cells, insertCell } = useShell();
+  const { cells, insertCell, sidebarTab } = useShell();
 
   return (
-    <div className="colab-notebook-container">
+    <div className={`colab-notebook-container ${sidebarTab ? 'sidebar-open' : ''}`}>
       <div className="colab-notebook-inner">
         {/* Top hover divider */}
         {cells.length > 0 && <CellDivider targetId={cells[0].id} position="above" />}

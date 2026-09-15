@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   VscListTree,
   VscCode,
@@ -123,7 +123,6 @@ int main() {
 ];
 
 const Sidebar = () => {
-  const [activeTab, setActiveTab] = useState(null);
   const {
     cells,
     setActiveCellId,
@@ -132,6 +131,9 @@ const Sidebar = () => {
     exportJSON,
     importNotebook,
     newNotebook,
+    sidebarTab: activeTab,
+    setSidebarTab: setActiveTab,
+    toggleSidebarTab: toggleTab,
   } = useShell();
 
   const tocItems = [];
@@ -150,9 +152,6 @@ const Sidebar = () => {
     }
   });
 
-  const toggleTab = (tab) => {
-    setActiveTab(prev => (prev === tab ? null : tab));
-  };
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -288,7 +287,7 @@ const Sidebar = () => {
             {activeTab === 'files' && (
               <div className="colab-files-list">
                 <div className="colab-files-desc">
-                  Export your C code or load an existing project into Google Colab.
+                  Export your C code or load an existing project into C-- Notebook.
                 </div>
 
                 <button onClick={exportCFile} className="colab-file-action-btn">
@@ -340,7 +339,7 @@ const Sidebar = () => {
             {activeTab === 'shortcuts' && (
               <div className="colab-shortcuts-list">
                 <div className="colab-shortcuts-desc">
-                  Colab Keyboard Shortcuts:
+                  Keyboard Shortcuts:
                 </div>
                 {[
                   { key: 'Shift + Enter', desc: 'Run cell and advance to next' },

@@ -11,14 +11,24 @@ export const useShell = () => {
   return context;
 };
 
-const STORAGE_KEY = 'colab_c_notebook_v2';
-const TITLE_KEY = 'colab_c_notebook_title_v2';
+const STORAGE_KEY = 'c_interactive_notebook_cells';
+const TITLE_KEY = 'c_interactive_notebook_title';
+const LEGACY_STORAGE_KEY = 'colab_c_notebook_v2';
+
+const sanitizeText = (txt) => {
+  if (typeof txt !== 'string') return txt;
+  return txt
+    .replace(/Google Colab for C Programming/gi, 'C-- Interactive Notebook')
+    .replace(/Hello from Google Colab C Notebook!/gi, 'Hello from C-- Interactive Notebook!')
+    .replace(/Google Colab/gi, 'C-- Notebook')
+    .replace(/Colab/gi, 'C--');
+};
 
 const INITIAL_CELLS = [
   {
     id: 'cell-1',
     type: 'text',
-    content: `# C-- Notebook
+    content: `# C-- Interactive Notebook
 Welcome to the interactive C notebook! You can write, edit, and run standard C code in code cells, or document your logic in Markdown text cells.
 
 - Press **Shift + Enter** to run a cell and advance to the next cell.
@@ -38,7 +48,7 @@ Welcome to the interactive C notebook! You can write, edit, and run standard C c
     content: `#include <stdio.h>
 
 int main() {
-    printf("Hello from C Notebook!\\n");
+    printf("Hello from C-- Interactive Notebook!\\n");
     
     int sum = 0;
     for (int i = 1; i <= 5; i++) {
@@ -96,15 +106,19 @@ export const ShellProvider = ({ children }) => {
   // Load saved state or fallback to default
   const [cells, setCells] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.map(c => ({
+            ...c,
+            content: sanitizeText(c.content),
+            output: sanitizeText(c.output),
+          }));
         }
       }
-    } catch (e) {
-      console.warn('Failed to read from localStorage:', e);
+    } catch {
+      // ignore
     }
     return INITIAL_CELLS;
   });
@@ -122,6 +136,12 @@ export const ShellProvider = ({ children }) => {
   const [activeCellId, setActiveCellId] = useState(() => (cells[0] ? cells[0].id : null));
   const [executionCounter, setExecutionCounter] = useState(1);
   const [isAnyRunning, setIsAnyRunning] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState(null); // null | 'toc' | 'snippets' | 'files' | 'shortcuts'
+
+  const toggleSidebarTab = useCallback((tab) => {
+    setSidebarTab(prev => (prev === tab ? null : tab));
+  }, []);
+
   const [backendStatus, setBackendStatus] = useState({
     status: 'checking', // 'checking' | 'connected' | 'error'
     latency: null,
@@ -451,7 +471,7 @@ export const ShellProvider = ({ children }) => {
 
   // Export full notebook as a downloadable .c file
   const exportCFile = useCallback(() => {
-    let fileContent = `/*\n * ${notebookTitle}\n * Generated via Google Colab C-- Interface\n * Date: ${new Date().toLocaleString()}\n */\n\n`;
+    let fileContent = `/*\n * ${notebookTitle}\n * Generated via C-- Interactive Notebook\n * Date: ${new Date().toLocaleString()}\n */\n\n`;
     cells.forEach((cell, idx) => {
       if (cell.type === 'text') {
         fileContent += `/* ==========================================\n * [TEXT CELL #${idx + 1}]\n * ${cell.content.replace(/\n/g, '\n * ')}\n * ========================================== */\n\n`;
@@ -560,6 +580,9 @@ export const ShellProvider = ({ children }) => {
       exportJSON,
       importNotebook,
       newNotebook,
+      sidebarTab,
+      setSidebarTab,
+      toggleSidebarTab,
     }}>
       {children}
     </ShellContext.Provider>

@@ -37,7 +37,7 @@ const Shell = forwardRef(({ onFocus, defaultValue, value, onChange, onRun, onRun
       editor.onDidFocusEditorText(onFocus);
     }
 
-    // Google Colab Shortcuts inside Monaco
+    // Keyboard shortcuts inside Monaco
     editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => {
       if (onRunAndAdvance) {
         onRunAndAdvance();
