@@ -456,6 +456,7 @@ export const ShellProvider = ({ children }) => {
 
   // Assemble full C program by concatenating ALL cell programs into a single complete C program
   const assembleProgram = useCallback((options = { forBackend: false }) => {
+  const assembleProgram = useCallback((options = { forBackend: false, withMarkers: false }) => {
     if (!currentNotebook) return '';
 
     let header = (currentNotebook.directives?.content || '').trim();
@@ -470,7 +471,14 @@ export const ShellProvider = ({ children }) => {
       const cell = mainCells[i];
       const trimmed = (cell.content || '').trim();
       if (trimmed) {
+        const safeId = `c${cell.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+        if (options?.withMarkers) {
+          mainBody += `    printf("__CELL_START:${safeId}__\\n");\n`;
+        }
         mainBody += `    // [Main Step ${i + 1}]\n${cell.content.split('\n').map(l => '    ' + l).join('\n')}\n\n`;
+        if (options?.withMarkers) {
+          mainBody += `    printf("__CELL_END:${safeId}__\\n");\n\n`;
+        }
       }
     }
 
@@ -500,20 +508,60 @@ export const ShellProvider = ({ children }) => {
 
   // Execute JavaScript in browser with output capture & sanitization
   const executeJs = (code) => {
+  // Execute JavaScript in browser with output capture & cell-specific routing
+  const executeJs = (code, targetCellId = null) => {
     const cleanCode = sanitizeTranspiledJs(code);
     const outputBuffer = [];
+    const cellOutputs = {};
+    const generalOutput = [];
+    let currentCellKey = null;
+
     const originalLog = console.log;
     const originalError = console.error;
     const originalWarn = console.warn;
 
     console.log = (...args) => {
       outputBuffer.push(args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' '));
+      const text = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+      const lines = text.split('\n');
+      for (const line of lines) {
+        const startMatch = line.match(/__CELL_START:([a-zA-Z0-9_-]+)__/);
+        const endMatch = line.match(/__CELL_END:([a-zA-Z0-9_-]+)__/);
+        if (startMatch) {
+          currentCellKey = startMatch[1];
+          if (!cellOutputs[currentCellKey]) cellOutputs[currentCellKey] = [];
+        } else if (endMatch) {
+          currentCellKey = null;
+        } else if (line.trim() !== '') {
+          if (currentCellKey) {
+            cellOutputs[currentCellKey].push(line);
+          } else {
+            generalOutput.push(line);
+          }
+        }
+      }
     };
+
     console.error = (...args) => {
       outputBuffer.push('[Error] ' + args.map(a => String(a)).join(' '));
+      const text = '[Error] ' + args.map(a => String(a)).join(' ');
+      if (currentCellKey) {
+        if (!cellOutputs[currentCellKey]) cellOutputs[currentCellKey] = [];
+        cellOutputs[currentCellKey].push(text);
+      } else {
+        generalOutput.push(text);
+      }
     };
+
     console.warn = (...args) => {
       outputBuffer.push('[Warn] ' + args.map(a => String(a)).join(' '));
+      const text = '[Warn] ' + args.map(a => String(a)).join(' ');
+      if (currentCellKey) {
+        if (!cellOutputs[currentCellKey]) cellOutputs[currentCellKey] = [];
+        cellOutputs[currentCellKey].push(text);
+      } else {
+        generalOutput.push(text);
+      }
     };
 
     let runtimeError = null;
@@ -522,14 +570,31 @@ export const ShellProvider = ({ children }) => {
     } catch (err) {
       runtimeError = err.message || String(err);
       outputBuffer.push(`Runtime Error: ${runtimeError}`);
+      if (currentCellKey) {
+        if (!cellOutputs[currentCellKey]) cellOutputs[currentCellKey] = [];
+        cellOutputs[currentCellKey].push(`Runtime Error: ${runtimeError}`);
+      } else {
+        generalOutput.push(`Runtime Error: ${runtimeError}`);
+      }
     } finally {
       console.log = originalLog;
       console.error = originalError;
       console.warn = originalWarn;
     }
 
+    const targetKey = targetCellId ? `c${targetCellId.replace(/[^a-zA-Z0-9]/g, '')}` : null;
+    let selectedOutput = '';
+    if (targetKey && cellOutputs[targetKey] !== undefined) {
+      selectedOutput = cellOutputs[targetKey].join('\n');
+    } else if (generalOutput.length > 0) {
+      selectedOutput = generalOutput.join('\n');
+    }
+
     return {
       output: outputBuffer.join('\n'),
+      output: selectedOutput,
+      cellOutputs,
+      generalOutput: generalOutput.join('\n'),
       error: runtimeError,
     };
   };
@@ -621,6 +686,8 @@ export const ShellProvider = ({ children }) => {
     try {
       // Send assembled code to backend (with prototypes stripped to prevent JS syntax conflicts)
       const assembledForBackend = assembleProgram({ forBackend: true });
+      // Send assembled code to backend (with prototypes stripped and cell markers added)
+      const assembledForBackend = assembleProgram({ forBackend: true, withMarkers: true });
 
       const response = await fetch('https://code-converter-c-to-js.onrender.com/convert', {
         method: 'POST',
@@ -651,6 +718,7 @@ export const ShellProvider = ({ children }) => {
         const rawCode = data.full_js || data.js || data.result || '';
         const cleanCode = sanitizeTranspiledJs(rawCode);
         const { output: execOutput, error: runError } = executeJs(cleanCode);
+        const { output: execOutput, error: runError } = executeJs(cleanCode, cellId);
         const finalStatus = runError ? 'error' : 'success';
         const nextExecCount = executionCounter;
         setExecutionCounter(cnt => cnt + 1);
@@ -865,6 +933,7 @@ export const ShellProvider = ({ children }) => {
   }, [currentNotebook, activeNotebookId, assembleProgram, executionCounter]);
 
   // Run all main cells (validating syntax first)
+  // Run all main cells (validating syntax first and isolating per-cell output)
   const runAllCells = useCallback(async () => {
     if (!currentNotebook) return;
 
@@ -895,9 +964,89 @@ export const ShellProvider = ({ children }) => {
     for (const cell of currentNotebook.mainCells) {
       setActiveCellId(cell.id);
       await runMainCell(cell.id);
+    const startTime = performance.now();
+
+    try {
+      const assembledForBackend = assembleProgram({ forBackend: true, withMarkers: true });
+      const response = await fetch('https://code-converter-c-to-js.onrender.com/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: assembledForBackend }),
+      });
+
+      const data = await response.json();
+      const elapsed = Math.round(performance.now() - startTime);
+
+      if (data.error) {
+        const firstMainId = currentNotebook.mainCells[0]?.id;
+        setNotebooks(prev => prev.map(nb => {
+          if (nb.id !== activeNotebookId) return nb;
+          return {
+            ...nb,
+            mainCells: nb.mainCells.map(c => (c.id === firstMainId ? {
+              ...c,
+              status: 'error',
+              output: `Compilation Error:\n${data.error}`,
+              error: data.error,
+              executionTime: elapsed,
+              jsCode: data.js || '',
+              fullJs: data.full_js || '',
+            } : c)),
+          };
+        }));
+      } else {
+        const rawCode = data.full_js || data.js || data.result || '';
+        const cleanCode = sanitizeTranspiledJs(rawCode);
+        const { cellOutputs, error: runError } = executeJs(cleanCode);
+        const startCount = executionCounter;
+
+        setNotebooks(prev => prev.map(nb => {
+          if (nb.id !== activeNotebookId) return nb;
+          return {
+            ...nb,
+            mainCells: nb.mainCells.map((c, idx) => {
+              const safeKey = `c${c.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+              const cellLines = cellOutputs[safeKey];
+              const cellOut = (cellLines && cellLines.length > 0)
+                ? cellLines.join('\n')
+                : (runError ? `Runtime Error: ${runError}` : '[Program exited with code 0 (No stdout)]');
+              return {
+                ...c,
+                status: runError ? 'error' : 'success',
+                output: cellOut,
+                error: runError,
+                executionTime: elapsed,
+                executionCount: startCount + idx,
+                jsCode: data.js || '',
+                fullJs: cleanCode,
+              };
+            }),
+          };
+        }));
+        setExecutionCounter(cnt => cnt + currentNotebook.mainCells.length);
+      }
+    } catch (err) {
+      const elapsed = Math.round(performance.now() - startTime);
+      const firstMainId = currentNotebook.mainCells[0]?.id;
+      setNotebooks(prev => prev.map(nb => {
+        if (nb.id !== activeNotebookId) return nb;
+        return {
+          ...nb,
+          mainCells: nb.mainCells.map(c => (c.id === firstMainId ? {
+            ...c,
+            status: 'error',
+            output: `Execution Error: ${err.message}`,
+            error: err.message,
+            executionTime: elapsed,
+          } : c)),
+        };
+      }));
+    } finally {
+      setIsAnyRunning(false);
     }
     setIsAnyRunning(false);
   }, [currentNotebook, runMainCell, activeNotebookId]);
+  }, [currentNotebook, assembleProgram, activeNotebookId, executionCounter]);
 
   // Clear single cell output
   const clearCellOutput = useCallback((id) => {
