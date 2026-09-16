@@ -4,6 +4,8 @@ import {
   validateCSyntax,
   validateNotebookCells,
   formatSyntaxErrorOutput,
+  stripPrototypes,
+  sanitizeTranspiledJs,
 } from '../utils/cSyntaxValidator';
 
 const ShellContext = createContext(null);
@@ -453,10 +455,14 @@ export const ShellProvider = ({ children }) => {
   }, [activeNotebookId]);
 
   // Assemble full C program by concatenating ALL cell programs into a single complete C program
-  const assembleProgram = useCallback(() => {
+  const assembleProgram = useCallback((options = { forBackend: false }) => {
     if (!currentNotebook) return '';
 
-    const header = (currentNotebook.directives?.content || '').trim();
+    let header = (currentNotebook.directives?.content || '').trim();
+    if (options?.forBackend) {
+      // Strip prototypes so the backend converter doesn't output unparsed C prototypes into JS runtime
+      header = stripPrototypes(header).trim();
+    }
 
     let mainBody = '';
     const mainCells = currentNotebook.mainCells || [];
@@ -492,8 +498,9 @@ export const ShellProvider = ({ children }) => {
     return parts.join('\n\n') + '\n';
   }, [currentNotebook]);
 
-  // Execute JavaScript in browser with output capture
+  // Execute JavaScript in browser with output capture & sanitization
   const executeJs = (code) => {
+    const cleanCode = sanitizeTranspiledJs(code);
     const outputBuffer = [];
     const originalLog = console.log;
     const originalError = console.error;
@@ -511,7 +518,7 @@ export const ShellProvider = ({ children }) => {
 
     let runtimeError = null;
     try {
-      new Function(code)();
+      new Function(cleanCode)();
     } catch (err) {
       runtimeError = err.message || String(err);
       outputBuffer.push(`Runtime Error: ${runtimeError}`);
@@ -612,23 +619,19 @@ export const ShellProvider = ({ children }) => {
     const startTime = performance.now();
 
     try {
+      // Send assembled code to backend (with prototypes stripped to prevent JS syntax conflicts)
+      const assembledForBackend = assembleProgram({ forBackend: true });
+
       const response = await fetch('https://code-converter-c-to-js.onrender.com/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: assembled }),
+        body: JSON.stringify({ code: assembledForBackend }),
       });
 
       const data = await response.json();
       const elapsed = Math.round(performance.now() - startTime);
 
-      // Detect backend error or backend parsing failure where C types were treated as undeclared variables
-      const C_TYPES = ['int', 'char', 'float', 'double', 'void', 'long', 'short', 'struct', 'unsigned', 'signed'];
-      const unparsedTypes = (data.undeclared || []).filter(u => C_TYPES.includes(u));
-
-      if (data.error || unparsedTypes.length > 0) {
-        const errorDesc = data.error ||
-          `Backend parsing error: Unparsed C type keyword(s) [${unparsedTypes.join(', ')}]. Check for missing semicolons or syntax errors.`;
-
+      if (data.error) {
         setNotebooks(prev => prev.map(nb => {
           if (nb.id !== activeNotebookId) return nb;
           return {
@@ -636,8 +639,8 @@ export const ShellProvider = ({ children }) => {
             mainCells: nb.mainCells.map(c => (c.id === cellId ? {
               ...c,
               status: 'error',
-              output: `Compilation Error:\n${errorDesc}`,
-              error: errorDesc,
+              output: `Compilation Error:\n${data.error}`,
+              error: data.error,
               executionTime: elapsed,
               jsCode: data.js || '',
               fullJs: data.full_js || '',
@@ -645,8 +648,9 @@ export const ShellProvider = ({ children }) => {
           };
         }));
       } else {
-        const codeToExecute = data.full_js || data.js || data.result || '';
-        const { output: execOutput, error: runError } = executeJs(codeToExecute);
+        const rawCode = data.full_js || data.js || data.result || '';
+        const cleanCode = sanitizeTranspiledJs(rawCode);
+        const { output: execOutput, error: runError } = executeJs(cleanCode);
         const finalStatus = runError ? 'error' : 'success';
         const nextExecCount = executionCounter;
         setExecutionCounter(cnt => cnt + 1);
@@ -663,7 +667,7 @@ export const ShellProvider = ({ children }) => {
               executionTime: elapsed,
               executionCount: nextExecCount,
               jsCode: data.js || '',
-              fullJs: data.full_js || '',
+              fullJs: cleanCode,
             } : c)),
           };
         }));
@@ -791,21 +795,18 @@ export const ShellProvider = ({ children }) => {
     const startTime = performance.now();
 
     try {
+      // Send assembled code to backend (with prototypes stripped to prevent JS syntax conflicts)
+      const assembledForBackend = assembleProgram({ forBackend: true });
+
       const response = await fetch('https://code-converter-c-to-js.onrender.com/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: assembled }),
+        body: JSON.stringify({ code: assembledForBackend }),
       });
       const data = await response.json();
       const elapsed = Math.round(performance.now() - startTime);
 
-      const C_TYPES = ['int', 'char', 'float', 'double', 'void', 'long', 'short', 'struct', 'unsigned', 'signed'];
-      const unparsedTypes = (data.undeclared || []).filter(u => C_TYPES.includes(u));
-
-      if (data.error || unparsedTypes.length > 0) {
-        const errorDesc = data.error ||
-          `Backend parsing error: Unparsed C type keyword(s) [${unparsedTypes.join(', ')}]. Check for missing semicolons or syntax errors.`;
-
+      if (data.error) {
         setNotebooks(prev => prev.map(nb => {
           if (nb.id !== activeNotebookId) return nb;
           return {
@@ -813,8 +814,8 @@ export const ShellProvider = ({ children }) => {
             functionCells: nb.functionCells.map(c => (c.id === cellId ? {
               ...c,
               status: 'error',
-              output: `Compilation Error:\n${errorDesc}`,
-              error: errorDesc,
+              output: `Compilation Error:\n${data.error}`,
+              error: data.error,
               executionTime: elapsed,
               jsCode: data.js || '',
               fullJs: data.full_js || '',
@@ -824,6 +825,7 @@ export const ShellProvider = ({ children }) => {
       } else {
         const nextExecCount = executionCounter;
         setExecutionCounter(cnt => cnt + 1);
+        const cleanCode = sanitizeTranspiledJs(data.full_js || data.js || '');
 
         setNotebooks(prev => prev.map(nb => {
           if (nb.id !== activeNotebookId) return nb;
@@ -837,7 +839,7 @@ export const ShellProvider = ({ children }) => {
               executionTime: elapsed,
               executionCount: nextExecCount,
               jsCode: data.js || '',
-              fullJs: data.full_js || '',
+              fullJs: cleanCode,
             } : c)),
           };
         }));

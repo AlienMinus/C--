@@ -125,6 +125,7 @@ const CodeBlock = ({ cell, isFirst, isLast }) => {
       <div className="colab-cell-body">
         <Run
           isRunning={isRunning}
+          status={status}
           executionCount={executionCount}
           onRun={() => runCell(id)}
         />

@@ -366,3 +366,36 @@ export function formatSyntaxErrorOutput(errors) {
 
   return `${header}\n${details}${tip}`;
 }
+
+/**
+ * Strip C function prototypes (e.g. "int calculate_square(int n);")
+ * Used when preparing code for the backend C-to-JS transpiler so the transpiler doesn't
+ * copy prototype declarations into the JS runtime.
+ */
+export function stripPrototypes(directivesCode) {
+  if (!directivesCode || typeof directivesCode !== 'string') return '';
+  return directivesCode.replace(/^\s*(?:void|int|float|double|char|long|short|unsigned|signed|size_t|bool)\s+[A-Za-z_]\w*\s*\([^)]*\)\s*;\s*$/gm, '');
+}
+
+/**
+ * Sanitizes transpiled JS code returned from the backend before execution:
+ * 1. Removes any unparsed C function prototypes.
+ * 2. Normalizes leftover C type declarations ("int sum = ...", "float x = ...") to "let".
+ * 3. Normalizes uninitialized C variable declarations ("int sum;") to "let sum;".
+ */
+export function sanitizeTranspiledJs(jsCode) {
+  if (!jsCode || typeof jsCode !== 'string') return '';
+  let cleaned = jsCode;
+
+  // 1. Remove leftover C prototypes
+  cleaned = cleaned.replace(/^\s*(?:void|int|float|double|char|long|short|unsigned|signed|size_t|bool)\s+[A-Za-z_]\w*\s*\([^)]*\)\s*;\s*$/gm, '');
+
+  // 2. Convert leftover C typed variables with assignments (e.g., int sum = add_numbers(a, b);)
+  cleaned = cleaned.replace(/\b(?:int|float|double|char|long|short|unsigned|signed|size_t|bool)\s+([A-Za-z_]\w*\s*=)/g, 'let $1');
+
+  // 3. Convert leftover C typed declarations without assignments (e.g., int sum;)
+  cleaned = cleaned.replace(/\b(?:int|float|double|char|long|short|unsigned|signed|size_t|bool)\s+([A-Za-z_]\w*)\s*;/g, 'let $1;');
+
+  return cleaned;
+}
+
