@@ -455,7 +455,6 @@ export const ShellProvider = ({ children }) => {
   }, [activeNotebookId]);
 
   // Assemble full C program by concatenating ALL cell programs into a single complete C program
-  const assembleProgram = useCallback((options = { forBackend: false }) => {
   const assembleProgram = useCallback((options = { forBackend: false, withMarkers: false }) => {
     if (!currentNotebook) return '';
 
@@ -506,8 +505,6 @@ export const ShellProvider = ({ children }) => {
     return parts.join('\n\n') + '\n';
   }, [currentNotebook]);
 
-  // Execute JavaScript in browser with output capture & sanitization
-  const executeJs = (code) => {
   // Execute JavaScript in browser with output capture & cell-specific routing
   const executeJs = (code, targetCellId = null) => {
     const cleanCode = sanitizeTranspiledJs(code);
@@ -588,11 +585,13 @@ export const ShellProvider = ({ children }) => {
       selectedOutput = cellOutputs[targetKey].join('\n');
     } else if (generalOutput.length > 0) {
       selectedOutput = generalOutput.join('\n');
+    } else {
+      selectedOutput = outputBuffer.filter(line => !line.includes('__CELL_START:') && !line.includes('__CELL_END:')).join('\n');
     }
 
     return {
-      output: outputBuffer.join('\n'),
       output: selectedOutput,
+      allOutput: outputBuffer.join('\n'),
       cellOutputs,
       generalOutput: generalOutput.join('\n'),
       error: runtimeError,
@@ -684,8 +683,6 @@ export const ShellProvider = ({ children }) => {
     const startTime = performance.now();
 
     try {
-      // Send assembled code to backend (with prototypes stripped to prevent JS syntax conflicts)
-      const assembledForBackend = assembleProgram({ forBackend: true });
       // Send assembled code to backend (with prototypes stripped and cell markers added)
       const assembledForBackend = assembleProgram({ forBackend: true, withMarkers: true });
 
@@ -717,7 +714,6 @@ export const ShellProvider = ({ children }) => {
       } else {
         const rawCode = data.full_js || data.js || data.result || '';
         const cleanCode = sanitizeTranspiledJs(rawCode);
-        const { output: execOutput, error: runError } = executeJs(cleanCode);
         const { output: execOutput, error: runError } = executeJs(cleanCode, cellId);
         const finalStatus = runError ? 'error' : 'success';
         const nextExecCount = executionCounter;
@@ -932,7 +928,6 @@ export const ShellProvider = ({ children }) => {
     }
   }, [currentNotebook, activeNotebookId, assembleProgram, executionCounter]);
 
-  // Run all main cells (validating syntax first)
   // Run all main cells (validating syntax first and isolating per-cell output)
   const runAllCells = useCallback(async () => {
     if (!currentNotebook) return;
@@ -961,9 +956,6 @@ export const ShellProvider = ({ children }) => {
     }
 
     setIsAnyRunning(true);
-    for (const cell of currentNotebook.mainCells) {
-      setActiveCellId(cell.id);
-      await runMainCell(cell.id);
     const startTime = performance.now();
 
     try {
@@ -1044,8 +1036,6 @@ export const ShellProvider = ({ children }) => {
     } finally {
       setIsAnyRunning(false);
     }
-    setIsAnyRunning(false);
-  }, [currentNotebook, runMainCell, activeNotebookId]);
   }, [currentNotebook, assembleProgram, activeNotebookId, executionCounter]);
 
   // Clear single cell output
