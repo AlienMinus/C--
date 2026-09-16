@@ -1,0 +1,129 @@
+/* SectionMain.css - Main Function Wrapper with Extracted Banners */
+
+.c-section-main-wrapper {
+  width: 100%;
+  max-width: 960px;
+  margin-bottom: 24px;
+}
+
+.c-section-main-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.c-section-main-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.c-section-main-tag {
+  background-color: #34a853;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.c-section-main-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8eaed;
+}
+
+.c-section-main-frame {
+  border: 1px solid #3c4043;
+  border-radius: 6px;
+  background-color: #1a1c1e;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Extracted int main() { Banner */
+.c-main-banner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background-color: #212327;
+  border-bottom: 1px solid #3c4043;
+  font-family: 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8eaed;
+  user-select: none;
+}
+
+.c-main-keyword {
+  color: #ff7b72;
+}
+
+.c-main-func-name {
+  color: #79c0ff;
+}
+
+.c-main-brace {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.c-main-split-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #2d333b;
+  color: #c9d1d9;
+  border: 1px solid #444c56;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.c-main-split-btn:hover {
+  background-color: #388bfd;
+  color: #ffffff;
+  border-color: #388bfd;
+}
+
+.c-main-step-count {
+  font-size: 11px;
+  color: #9aa0a6;
+  font-weight: 400;
+}
+
+/* Body container holding broken cells */
+.c-main-cells-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #17181a;
+}
+
+/* Extracted return 0; } Banner */
+.c-main-banner-bottom {
+  padding: 10px 16px;
+  background-color: #212327;
+  border-top: 1px solid #3c4043;
+  font-family: 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8eaed;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.c-main-return-line {
+  padding-left: 20px;
+}

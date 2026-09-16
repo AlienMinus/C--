@@ -228,6 +228,72 @@
   color: #e8eaed;
 }
 
+/* Notebooks Drawer */
+.colab-notebooks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.colab-notebook-card {
+  background-color: #292a2d;
+  border: 1px solid #3c4043;
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.colab-notebook-card:hover {
+  border-color: #5f6368;
+  background-color: #313337;
+}
+
+.colab-notebook-card.active {
+  border-color: #8ab4f8;
+  background-color: rgba(138, 180, 248, 0.08);
+}
+
+.colab-notebook-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.colab-notebook-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8eaed;
+}
+
+.colab-notebook-card-info {
+  font-size: 11px;
+  color: #9aa0a6;
+  margin-bottom: 8px;
+}
+
+.colab-notebook-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.colab-notebooks-desc {
+  font-size: 12px;
+  color: #9aa0a6;
+  margin-bottom: 4px;
+}
+
+.colab-snippet-btn-danger {
+  color: #f85149;
+}
+
+.colab-notebook-create-btn {
+  margin-top: 8px;
+  justify-content: center;
+  padding: 8px;
+}
+
 /* Files Drawer */
 .colab-files-list {
   display: flex;

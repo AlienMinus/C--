@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { VscAdd, VscNote } from 'react-icons/vsc';
-import { useShell } from '../context/ShellContext';
+import { useShell } from '../../context/ShellContext';
 import './CellDivider.css';
 
 const CellDivider = ({ targetId, position = 'below' }) => {

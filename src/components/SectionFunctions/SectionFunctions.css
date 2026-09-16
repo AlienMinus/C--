@@ -1,0 +1,103 @@
+/* SectionFunctions.css - Function Implementation Cells */
+
+.c-section-functions-wrapper {
+  width: 100%;
+  max-width: 960px;
+  margin-bottom: 32px;
+}
+
+.c-section-functions-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.c-section-functions-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.c-section-functions-tag {
+  background-color: #8ab4f8;
+  color: #121314;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.c-section-functions-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8eaed;
+}
+
+.c-section-functions-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #2d333b;
+  color: #c9d1d9;
+  border: 1px solid #444c56;
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.c-section-functions-add-btn:hover {
+  background-color: #388bfd;
+  color: #ffffff;
+  border-color: #388bfd;
+}
+
+.c-section-functions-desc {
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #9aa0a6;
+  background-color: #1e1e1e;
+  border: 1px solid #3c4043;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.c-function-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  margin-left: 48px;
+}
+
+.c-function-status-valid {
+  background-color: rgba(63, 185, 80, 0.15);
+  color: #3fb950;
+  border: 1px solid rgba(63, 185, 80, 0.3);
+}
+
+.c-function-status-invalid {
+  background-color: rgba(248, 81, 73, 0.15);
+  color: #f85149;
+  border: 1px solid rgba(248, 81, 73, 0.3);
+}
+
+.c-section-functions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.c-function-status-wrapper {
+  padding-top: 8px;
+}

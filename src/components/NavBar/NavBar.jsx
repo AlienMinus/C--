@@ -4,28 +4,29 @@ import {
   VscRunAll,
   VscClearAll,
   VscAdd,
-  VscNote,
   VscCheck,
+  VscCode,
 } from 'react-icons/vsc';
-import { useShell } from '../context/ShellContext';
+import { useShell } from '../../context/ShellContext';
+import NotebookSwitcher from '../NotebookSwitcher/NotebookSwitcher';
 import './NavBar.css';
 
 const NavBar = () => {
   const {
-    cells,
-    activeCellId,
-    notebookTitle,
+    currentNotebook,
+    activeNotebookId,
     setNotebookTitle,
+    createNotebook,
+    duplicateNotebook,
+    deleteNotebook,
     runAllCells,
     clearAllOutputs,
     resetRuntime,
-    insertCell,
-    removeCell,
-    moveCell,
+    insertMainCell,
+    insertFunctionCell,
     exportCFile,
     exportJSON,
     importNotebook,
-    newNotebook,
     backendStatus,
     checkBackendHealth,
     isAnyRunning,
@@ -59,15 +60,15 @@ const NavBar = () => {
     }
   };
 
-  const codeCellsCount = cells.filter(c => c.type === 'code').length;
-  const textCellsCount = cells.filter(c => c.type === 'text').length;
+  const mainCount = currentNotebook?.mainCells?.length || 0;
+  const funcCount = currentNotebook?.functionCells?.length || 0;
 
   return (
     <header className="colab-header">
-      {/* Row 1: Brand, Title, Menu Bar, Gauges */}
+      {/* Row 1: Brand, Title, Switcher, Menu Bar, Gauges */}
       <div className="colab-header-row1">
         <div className="colab-header-left">
-          {/* Colab / C-- Brand with favicon.png */}
+          {/* Brand with favicon.png */}
           <Link to="/" className="colab-brand">
             <img src="/favicon.png" alt="C-- Logo" className="colab-brand-logo" />
             <span className="colab-brand-title">
@@ -75,12 +76,15 @@ const NavBar = () => {
             </span>
           </Link>
 
+          {/* Notebook Switcher Dropdown */}
+          <NotebookSwitcher />
+
           {/* Title and Saved State */}
           <div className="colab-title-container">
             {isEditingTitle ? (
               <input
                 type="text"
-                value={notebookTitle}
+                value={currentNotebook?.title || 'Notebook.c'}
                 onChange={(e) => setNotebookTitle(e.target.value)}
                 onBlur={() => setIsEditingTitle(false)}
                 onKeyDown={(e) => {
@@ -95,7 +99,7 @@ const NavBar = () => {
                 title="Click to rename notebook"
                 className="colab-title-text"
               >
-                {notebookTitle}
+                {currentNotebook?.title || 'Notebook.c'}
               </span>
             )}
 
@@ -108,7 +112,7 @@ const NavBar = () => {
             </span>
           </div>
 
-          {/* Colab Menus Bar */}
+          {/* Menus Bar */}
           <div data-colab-menu className="colab-menu-bar">
             {/* File Menu */}
             <div className="colab-menu-wrapper">
@@ -121,8 +125,11 @@ const NavBar = () => {
               </button>
               {activeMenu === 'file' && (
                 <div className="colab-dropdown">
-                  <div onClick={() => { newNotebook(); setActiveMenu(null); }} className="colab-dropdown-item">
+                  <div onClick={() => { createNotebook(); setActiveMenu(null); }} className="colab-dropdown-item">
                     New Notebook
+                  </div>
+                  <div onClick={() => { duplicateNotebook(activeNotebookId); setActiveMenu(null); }} className="colab-dropdown-item">
+                    Duplicate Notebook
                   </div>
                   <div
                     onClick={() => {
@@ -144,6 +151,15 @@ const NavBar = () => {
                   <div onClick={() => { clearAllOutputs(); setActiveMenu(null); }} className="colab-dropdown-item">
                     Clear All Outputs
                   </div>
+                  <div
+                    onClick={() => {
+                      deleteNotebook(activeNotebookId);
+                      setActiveMenu(null);
+                    }}
+                    className="colab-dropdown-item colab-dropdown-danger"
+                  >
+                    Delete Current Notebook
+                  </div>
                 </div>
               )}
             </div>
@@ -161,31 +177,30 @@ const NavBar = () => {
                 <div className="colab-dropdown">
                   <div
                     onClick={() => {
-                      if (activeCellId) moveCell(activeCellId, 'up');
+                      setIsEditingTitle(true);
                       setActiveMenu(null);
                     }}
                     className="colab-dropdown-item"
                   >
-                    Move Cell Up
+                    Rename Notebook
                   </div>
                   <div
                     onClick={() => {
-                      if (activeCellId) moveCell(activeCellId, 'down');
+                      insertMainCell(null);
                       setActiveMenu(null);
                     }}
                     className="colab-dropdown-item"
                   >
-                    Move Cell Down
+                    Break main() - Add Step
                   </div>
-                  <div className="colab-dropdown-divider" />
                   <div
                     onClick={() => {
-                      if (activeCellId) removeCell(activeCellId);
+                      insertFunctionCell(null);
                       setActiveMenu(null);
                     }}
-                    className="colab-dropdown-item colab-dropdown-danger"
+                    className="colab-dropdown-item"
                   >
-                    Delete Selected Cell
+                    Add Function Cell
                   </div>
                 </div>
               )}
@@ -202,14 +217,14 @@ const NavBar = () => {
               </button>
               {activeMenu === 'view' && (
                 <div className="colab-dropdown">
-                  <div onClick={() => { toggleSidebarTab('toc'); setActiveMenu(null); }} className="colab-dropdown-item">
-                    Toggle Table of Contents
+                  <div onClick={() => { toggleSidebarTab('notebooks'); setActiveMenu(null); }} className="colab-dropdown-item">
+                    Notebooks Manager
                   </div>
                   <div onClick={() => { toggleSidebarTab('snippets'); setActiveMenu(null); }} className="colab-dropdown-item">
-                    Toggle C Snippets Library
+                    C Snippets Library
                   </div>
                   <div onClick={() => { toggleSidebarTab('files'); setActiveMenu(null); }} className="colab-dropdown-item">
-                    Toggle Files & Export
+                    Files & Export
                   </div>
                   <div className="colab-dropdown-divider" />
                   <div onClick={() => { clearAllOutputs(); setActiveMenu(null); }} className="colab-dropdown-item">
@@ -232,21 +247,21 @@ const NavBar = () => {
                 <div className="colab-dropdown">
                   <div
                     onClick={() => {
-                      insertCell(activeCellId, 'below', 'code');
+                      insertMainCell(null);
                       setActiveMenu(null);
                     }}
                     className="colab-dropdown-item"
                   >
-                    Code Cell (Ctrl+M B)
+                    Break main() - Add Step
                   </div>
                   <div
                     onClick={() => {
-                      insertCell(activeCellId, 'below', 'text');
+                      insertFunctionCell(null);
                       setActiveMenu(null);
                     }}
                     className="colab-dropdown-item"
                   >
-                    Text Cell (Ctrl+M M)
+                    Add Function Cell (after return 0)
                   </div>
                 </div>
               )}
@@ -264,7 +279,7 @@ const NavBar = () => {
               {activeMenu === 'runtime' && (
                 <div className="colab-dropdown">
                   <div onClick={() => { runAllCells(); setActiveMenu(null); }} className="colab-dropdown-item">
-                    Run All Cells (Ctrl+F9)
+                    Run All main() Cells (Ctrl+F9)
                   </div>
                   <div className="colab-dropdown-divider" />
                   <div onClick={() => { resetRuntime(); setActiveMenu(null); }} className="colab-dropdown-item">
@@ -272,39 +287,6 @@ const NavBar = () => {
                   </div>
                   <div onClick={() => { checkBackendHealth(); setActiveMenu(null); }} className="colab-dropdown-item">
                     Reconnect to Backend (Render)
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Tools Menu */}
-            <div className="colab-menu-wrapper">
-              <button
-                onClick={(e) => toggleMenu('tools', e)}
-                onMouseEnter={() => handleMenuHover('tools')}
-                className={`colab-menu-btn ${activeMenu === 'tools' ? 'active' : ''}`}
-              >
-                Tools
-              </button>
-              {activeMenu === 'tools' && (
-                <div className="colab-dropdown">
-                  <div
-                    onClick={() => {
-                      alert('Keyboard Shortcuts:\n• Shift + Enter: Run cell and advance\n• Ctrl + Enter: Run cell in place\n• Double click text cell to edit\n• Hover divider between cells to add + Code / + Text');
-                      setActiveMenu(null);
-                    }}
-                    className="colab-dropdown-item"
-                  >
-                    Keyboard Shortcuts Guide
-                  </div>
-                  <div
-                    onClick={() => {
-                      alert('C-- Backend Information:\n• Endpoint: https://code-converter-c-to-js.onrender.com/convert\n• Architecture: C AST -> JavaScript AST -> Browser V8 sandbox');
-                      setActiveMenu(null);
-                    }}
-                    className="colab-dropdown-item"
-                  >
-                    C-to-JS Backend Info
                   </div>
                 </div>
               )}
@@ -393,21 +375,21 @@ const NavBar = () => {
       <div className="colab-header-row2">
         <div className="colab-header-actions">
           <button
-            onClick={() => insertCell(activeCellId, 'below', 'code')}
+            onClick={() => insertMainCell(null)}
             className="colab-action-btn"
-            title="Add a new C code cell (Ctrl+M B)"
+            title="Break / Add step inside main()"
           >
             <VscAdd size={14} color="#8ab4f8" />
-            <span>Code</span>
+            <span>Break main() cell</span>
           </button>
 
           <button
-            onClick={() => insertCell(activeCellId, 'below', 'text')}
+            onClick={() => insertFunctionCell(null)}
             className="colab-action-btn"
-            title="Add a new Markdown text cell (Ctrl+M M)"
+            title="Add a new function cell (after return 0)"
           >
-            <VscNote size={14} color="#8ab4f8" />
-            <span>Text</span>
+            <VscCode size={14} color="#8ab4f8" />
+            <span>Add Function cell</span>
           </button>
 
           <div className="colab-toolbar-divider" />
@@ -416,10 +398,10 @@ const NavBar = () => {
             onClick={runAllCells}
             disabled={isAnyRunning}
             className={`colab-action-btn ${isAnyRunning ? 'disabled' : ''}`}
-            title="Run all cells in notebook (Ctrl+F9)"
+            title="Run all main() cells sequentially (Ctrl+F9)"
           >
             <VscRunAll size={15} color={isAnyRunning ? '#9aa0a6' : '#34a853'} />
-            <span>Run all</span>
+            <span>Run all main()</span>
           </button>
 
           <button
@@ -432,10 +414,10 @@ const NavBar = () => {
           </button>
         </div>
 
-        {/* Right Info: Cells counter */}
+        {/* Right Info: Structure counters */}
         <div className="colab-cell-counter">
           <span>
-            {cells.length} cells ({codeCellsCount} code, {textCellsCount} text)
+            {mainCount} main step{mainCount === 1 ? '' : 's'}, {funcCount} function cell{funcCount === 1 ? '' : 's'}
           </span>
         </div>
       </div>

@@ -42,6 +42,24 @@
   cursor: wait;
 }
 
+.colab-run-btn.executed {
+  border-color: rgba(63, 185, 80, 0.45);
+  background-color: rgba(63, 185, 80, 0.12);
+  color: #3fb950;
+}
+
+.colab-run-btn.executed:hover {
+  border-color: #388bfd;
+  background-color: #21262d;
+  color: #ffffff;
+}
+
+.colab-run-btn.failed {
+  border-color: rgba(248, 81, 73, 0.45);
+  background-color: rgba(248, 81, 73, 0.12);
+  color: #f85149;
+}
+
 .colab-run-spinner {
   animation: colab-spin 1s linear infinite;
 }
@@ -51,8 +69,26 @@
   color: #58a6ff;
 }
 
+.colab-run-check {
+  color: #3fb950;
+  stroke-width: 0.5;
+}
+
+.colab-run-error-icon {
+  color: #f85149;
+}
+
 .colab-run-count {
   font-size: 11px;
   color: #8b949e;
+}
+
+.colab-run-count-sub {
+  font-size: 10px;
+  font-family: Consolas, Monaco, monospace;
+  font-weight: 500;
+  color: #8b949e;
+  margin-top: 3px;
+  letter-spacing: -0.5px;
 }
 

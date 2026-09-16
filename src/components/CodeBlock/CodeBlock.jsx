@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import Shell from './Shell';
-import Run from './Run';
-import OutPut from './OutPut';
-import { useShell } from '../context/ShellContext';
+import Shell from '../Shell/Shell';
+import Run from '../Run/Run';
+import OutPut from '../OutPut/OutPut';
+import { useShell } from '../../context/ShellContext';
 import {
   VscChevronUp,
   VscChevronDown,

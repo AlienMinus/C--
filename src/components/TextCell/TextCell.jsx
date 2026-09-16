@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { VscChevronUp, VscChevronDown, VscTrash, VscEdit, VscCheck, VscCopy } from 'react-icons/vsc';
-import { useShell } from '../context/ShellContext';
+import { useShell } from '../../context/ShellContext';
 import './TextCell.css';
 
 // Lightweight safe Markdown to HTML parser

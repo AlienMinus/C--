@@ -1,0 +1,114 @@
+/* NotebookSwitcher.css - Top Navbar Notebook Switcher Dropdown */
+
+.nb-switcher-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nb-switcher-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #282a2d;
+  color: #e8eaed;
+  border: 1px solid #3c4043;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nb-switcher-btn:hover {
+  background-color: #35383c;
+  border-color: #8ab4f8;
+}
+
+.nb-switcher-title {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nb-switcher-dropdown {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  background-color: #242629;
+  border: 1px solid #3c4043;
+  border-radius: 6px;
+  padding: 6px 0;
+  min-width: 240px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  z-index: 3100;
+}
+
+.nb-switcher-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px 4px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8ab4f8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nb-switcher-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.nb-switcher-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #e8eaed;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.nb-switcher-item:hover {
+  background-color: #35383c;
+}
+
+.nb-switcher-item.active {
+  color: #8ab4f8;
+  background-color: rgba(138, 180, 248, 0.08);
+  font-weight: 600;
+}
+
+.nb-switcher-footer {
+  border-top: 1px solid #3c4043;
+  padding-top: 4px;
+  margin-top: 4px;
+}
+
+.nb-switcher-new-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  color: #34a853;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.nb-switcher-new-btn:hover {
+  background-color: rgba(52, 168, 83, 0.1);
+}
+
